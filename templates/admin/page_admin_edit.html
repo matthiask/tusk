@@ -1,0 +1,195 @@
+{% extends "admin/base_site.html" %}
+
+{% load adminmedia admin_modify i18n %}
+{% block stylesheet %}{% admin_media_prefix %}css/changelists.css{% endblock %}
+{% block bodyclass %}change-form{% endblock %}
+{% block breadcrumbs %}<div class="breadcrumbs"><a href="../../../">{% trans "Home" %}</a> &rsaquo; <a href="../">Pages</a> &rsaquo; Change page</div>{% endblock %}
+
+{% block coltype %}colM{% endblock %}
+
+{% block extrahead %}{{ block.super }}
+<script type="text/javascript" src="/static/tiny_mce/tiny_mce_src.js"></script>
+<script type="text/javascript">
+tinyMCE.init({mode:'none',width:'400',height:'300'});
+</script>
+
+<script type="text/javascript" src="/admin/jsi18n/" type="text/javascript"></script>
+<script type="text/javascript" src="/media/js/core.js" type="text/javascript"></script>
+<script type="text/javascript" src="/media/js/calendar.js" type="text/javascript"></script>
+<script type="text/javascript" src="/media/js/urlify.js"></script>
+<script type="text/javascript" src="/media/js/admin/DateTimeShortcuts.js" type="text/javascript"></script>
+<script type="text/javascript" src="/media/js/admin/RelatedObjectLookups.js"></script>
+
+
+
+<script type="text/javascript" src="/static/jquery-1.2.1.js"></script>
+<script type="text/javascript" src="/static/interface-1.2.js"></script>
+<link rel="stylesheet" type="text/css" href="/media/css/forms.css" />
+
+
+<script type="text/javascript">
+//<![CDATA[
+
+function add_pagecontent_form()
+{
+	$('#add-page-content:hidden').slideDown();
+	return false;
+}
+
+$(function(){
+	$('h2').click(function(){
+		$('.contentform-body', this.parentNode.parentNode).slideToggle();
+	});
+
+	$('div>fieldset:hidden').show();
+
+	id_slug = $('#id_slug');
+
+	$('#id_slug').change(function(){
+			this._changed = true;
+	});
+
+	id_slug_elem = id_slug[0];
+
+	$('#id_title').keyup(function(){
+		if(!id_slug_elem._changed)
+			id_slug_elem.value = URLify(this.value, 50);
+	});
+
+	var npcf_ctsel = $('#id_npcf-content_type');
+	npcf_ctsel.change(function(){
+		if(this.value!='') {
+			$('#add-page-content:visible').slideUp();
+			$.getJSON('../newcontentform/{{ page.pk }}/'+this.value+'/', function(data){
+				$('#page-contents').append(data['html']);
+				eval(data['javascript']);
+				npcf_ctsel.val('');
+			});
+		}
+	});
+
+	var npcf_pcsel = $('#id_npcf-pagecontent');
+	npcf_pcsel.change(function(){
+		if(this.value!='') {
+			$('#add-page-content:visible').slideUp();
+			$.getJSON('../newlinkcontentform/{{ page.pk }}/'+this.value+'/', function(data){
+				$('#page-contents').append(data['html']);
+				eval(data['javascript']);
+				npcf_pcsel.val('');
+			});
+		}
+	});
+
+
+
+});
+//]]>
+</script>
+<style type="text/css">
+p.help { display:inline; margin:0 0 0 1em !important; padding:0 !important; }
+fieldset p.info { margin-top:0.5em; margin-bottom:0; color:#666; }
+fieldset ul { margin-left:10em !important; }
+fieldset li { margin-bottom:0.2em; }
+fieldset li .deletelink { margin-left:1em; }
+#errors .hidden, fieldset .hidden { display:none; }
+#page-contents fieldset h2 { cursor:pointer; }
+/*
+#page-contents fieldset h2:hover { color:#999; }
+#page-contents fieldset h2 { background:#eee url(../img/admin/nav-bg.gif) bottom left repeat-x; color:#666; text-decoration:underline; }
+*/
+#page-contents fieldset h2 { text-decoration:underline; }
+.page-content-add { display:block; margin:1em 0; }
+
+#id_title { width:30em; }
+div.inline { display:inline; margin-right:1.5em; }
+div.inline label { float:none !important; width:auto !important; display:inline !important; padding:0 !important; font-size:1.0em; color:#333; }
+.form-row div.delete { padding-left:1em; display:inline; }
+.form-row div.delete a { font-size:1.1em; padding-left:14px; }
+.form-row .object-tools { padding:0 !important; display:inline !important; margin-left:0 !important; }
+.form-row a.toggle-advanced { text-decoration:underline; }
+</style>
+
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+{% block object-tools %}
+<ul class="object-tools">
+	<li><a href="{{ page.get_absolute_url }}_preview/{{ page.pk }}/" class="" onclick="window.open(this.href);return false">Preview in new window</a></li>
+</ul>
+{% endblock %}
+
+<form action="." method="post">
+
+	<fieldset class="module aligned">
+	{{ pageform.as_div }}
+	</fieldset>
+
+	<div class="submit-row">
+		<!--
+		<input type="submit" value="{% trans 'Save as new' %}" name="_saveasnew" {{ onclick_attrib }}/>
+		<input type="submit" value="{% trans 'Save and add another' %}" name="_addanother" {{ onclick_attrib }} />
+		<input type="submit" value="{% trans 'Save and continue editing' %}" name="_continue" {{ onclick_attrib }}/>
+		-->
+		<p class="float-left"><a href="delete/" class="deletelink">Delete</a></p>
+		<input type="submit" value="{% trans 'Save all changes' %}" name="_continue" class="default" {{ onclick_attrib }}/>
+		<input type="submit" value="{% trans 'Save and close' %}" class="default" {{ onclick_attrib }}/>
+		{% ifequal page.state "published" %}
+			<input type="submit" value="{% trans 'Create copy' %}" name="_createcopy" {{ onclick_attrib }}/>
+		{% endifequal %}
+		{% ifequal page.state "draft" %}
+			<input type="submit" value="{% trans 'Publish' %}" name="_publish" {{ onclick_attrib }}/>
+		{% endifequal %}
+		{% ifequal page.state "archived" %}
+			<input type="submit" value="{% trans 'Create copy' %}" name="_createcopy" {{ onclick_attrib }}/>
+		{% endifequal %}
+	</div>
+
+	<div id="page-contents">
+	{% for cf in contentforms %}
+
+		<div id="contentform-{{ cf.link.pk }}">
+			<fieldset class="module aligned">
+			<h2>{{ cf.link }}</h2>
+			<div class="contentform-body">
+				{{ cf.linkform.render }}
+				{{ cf.contentform.render }}
+				<script type="text/javascript">
+				{{ cf.contentform.javascript }}
+				</script>
+			</div>
+			</fieldset>
+		</div>
+
+	{% endfor %}
+	</div>
+
+	<p><a href="#" class="addlink page-content-add" onclick="return add_pagecontent_form()">Add page content</a></p>
+
+	<div id="add-page-content" style="display:none">
+		<fieldset class="module aligned">
+		<h2>Add page content</h2>
+		{{ newpagecontentform.as_div }}
+		</fieldset>
+	</div>
+
+	<div class="submit-row">
+		<p class="float-left"><a href="delete/" class="deletelink">Delete</a></p>
+		<input type="submit" value="{% trans 'Save all changes' %}" name="_continue" class="default" {{ onclick_attrib }}/>
+		<input type="submit" value="{% trans 'Save and close' %}" class="default" {{ onclick_attrib }}/>
+		{% ifequal page.state "published" %}
+			<input type="submit" value="{% trans 'Create copy' %}" name="_createcopy" {{ onclick_attrib }}/>
+		{% endifequal %}
+		{% ifequal page.state "draft" %}
+			<input type="submit" value="{% trans 'Publish' %}" name="_publish" {{ onclick_attrib }}/>
+		{% endifequal %}
+		{% ifequal page.state "archived" %}
+			<input type="submit" value="{% trans 'Create copy' %}" name="_createcopy" {{ onclick_attrib }}/>
+		{% endifequal %}
+	</div>
+
+</form>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,73 @@
+{% extends "admin/base_site.html" %}
+
+{% load adminmedia admin_list i18n %}
+{% block stylesheet %}{% admin_media_prefix %}css/changelists.css{% endblock %}
+{% block bodyclass %}change-list{% endblock %}
+{% if not is_popup %}{% block breadcrumbs %}<div class="breadcrumbs"><a href="../../">{% trans "Home" %}</a> &rsaquo; Pages</div>{% endblock %}{% endif %}
+{% block coltype %}flex{% endblock %}
+
+{% block content %}
+<div id="content-main">
+{% block object-tools %}
+<ul class="object-tools">
+	<li>
+		<a href="add/{% if is_popup %}?_popup=1{% endif %}" class="addlink">
+			{% blocktrans with cl.opts.verbose_name|escape as name %}Add {{ name }}{% endblocktrans %}
+		</a>
+	</li>
+</ul>
+{% endblock %}
+
+
+<script type="text/javascript" src="/static/jquery-1.2.1.js"></script>
+<script type="text/javascript" src="/static/json.js"></script>
+<script type="text/javascript" src="/static/interface-1.2.js"></script>
+<script type="text/javascript" src="/static/inestedsortable.js"></script>
+<script type="text/javascript" src="/static/jquery.nestedsortablewidget.js"></script>
+<link rel="stylesheet" type="text/css" href="/static/nestedSortables/src/widget/style/nestedsortablewidget.css" />
+<script type="text/javascript">
+//<![CDATA[
+function prepareNSW()
+{
+	elems = $('.nsw-item-row div:first-child')
+	for(var i=0; i<elems.length; i++) {
+		elem = $(elems[i])
+		id = parseInt(elem.text());
+		if(!isNaN(id))
+			elem.html('<a href="'+id+'/">Change</a>');
+	}
+}
+
+function buildNSW()
+{
+	$('#my_widget').NestedSortableWidget({
+		accept: 'sortable',
+		loadUrl: "widget/",
+		serializeWithJSON: true,
+		opacity: 0.6,
+		helperclass: 'helper',
+		nestedSortCfg: {
+			nestingPxSpace: '15'
+		},
+		currentNestingClass: 'current-nesting',
+		colsWidth: [40, 250, 80, 80, 80],
+		onLoad: prepareNSW,
+		onSave: function(){
+			$('#my_widget').NestedSortableWidgetDestroy();
+			buildNSW();
+		}
+	});
+}
+
+$(window).load(function(){
+	buildNSW();
+});
+
+//]]>
+</script>
+
+<div id="my_widget"></div>
+
+</div>
+
+{% endblock %}
