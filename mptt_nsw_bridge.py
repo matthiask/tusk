@@ -1,6 +1,6 @@
 from django.db import connection, transaction
 from django.utils.encoding import smart_unicode
-import cjson as json
+from django.utils import simplejson
 
 __all__ = ['process_store_tree', 'process_read_tree']
 
@@ -45,7 +45,7 @@ def store_tree(cls, tree):
 	transaction.commit()
 
 def process_store_tree(cls, request):
-	structure = json.decode(request.POST.get('nested-sortable-widget'))
+	structure = simplejson.loads(request.POST.get('nested-sortable-widget'))
 	store_tree(cls, structure.get('items'))
 
 def process_read_tree(cls, fields):
@@ -56,7 +56,7 @@ def process_read_tree(cls, fields):
 	resp['columns'] = [item[0] for item in fields]
 	resp['items'] = return_array(cls.tree.root_nodes(), [item[1] for item in fields])
 
-	return json.encode(resp)
+	return simplejson.dumps(resp)
 
 def __get_dynamic_attr(o, attname, obj=None, default=None):
 	try:

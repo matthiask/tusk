@@ -8,7 +8,7 @@
 {% block coltype %}colM{% endblock %}
 
 {% block extrahead %}{{ block.super }}
-<script type="text/javascript" src="/static/tiny_mce/tiny_mce_src.js"></script>
+<script type="text/javascript" src="/media/admin/tinymce/jscripts/tiny_mce/tiny_mce.js"></script>
 <script type="text/javascript">
 tinyMCE.init({mode:'none',width:'400',height:'300'});
 </script>
@@ -22,9 +22,9 @@ tinyMCE.init({mode:'none',width:'400',height:'300'});
 
 
 
-<script type="text/javascript" src="/static/jquery-1.2.1.js"></script>
-<script type="text/javascript" src="/static/interface-1.2.js"></script>
-<link rel="stylesheet" type="text/css" href="/media/css/forms.css" />
+<script type="text/javascript" src="{% admin_media_prefix %}tusk/jquery-1.2.1.js"></script>
+<script type="text/javascript" src="{% admin_media_prefix %}tusk/interface-1.2.js"></script>
+<link rel="stylesheet" type="text/css" href="{% admin_media_prefix %}css/forms.css" />
 
 
 <script type="text/javascript">

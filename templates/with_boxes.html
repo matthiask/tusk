@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+
+{% block pagesp1 %}
+<div id="pagesp1">
+	{% block content %}
+
+	<h2>{{ tusk.blocks.content.title }}</h2>
+
+	{{ tusk.blocks.content.render }}
+
+	<img src="/static/media/img/testpic.jpg" alt="" />
+
+	{% endblock %}
+
+	<table style="border: 1px solid #f00;width:100%">
+		<tr>
+			<td>
+				<h3>{{ tusk.blocks.box1.title }}</h3>
+				{{ tusk.blocks.box1.render }}
+			</td>
+			<td>
+				<h3>{{ tusk.blocks.box2.title }}</h3>
+				{{ tusk.blocks.box2.render }}
+			</td>
+			<td>
+				<h3>{{ tusk.blocks.box3.title }}</h3>
+				{{ tusk.blocks.box3.render }}
+			</td>
+		</tr>
+	</table>
+</div>
+{% endblock %}

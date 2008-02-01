@@ -1,0 +1,111 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<title>{% block title %}Atomkraft ohne uns! &ndash; Atom Allianz &ndash; {{ tusk.blocks.content.title }}{% endblock %}</title>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+	<meta http-equiv="imagetoolbar" content="no" />
+	<meta name="keywords" content="" />
+	<meta name="description" content="" />
+	<meta name="robots" content="index,follow,noodp" />
+	<meta name="language" content="de" />
+	<meta name="country" content="Switzerland" />
+	<meta name="geo.placename" content="Zurich" />
+	<meta name="geo.region" content="CH" />
+	<link rel="stylesheet" href="/static/media/css/global.css" media="all" type="text/css" />
+	<script type="text/javascript" src="/static/media/js/global.js"></script>
+	{% load navigation_extras %}
+	{% load webdesign %}
+	{% load tusk_navigation %}
+</head>
+<body class="de">
+	<div id="pageholder">
+		<div id="pagetop">
+			<div id="langswitch">
+
+				{% tusk_navigation of tusk.page as languages level=1 %}
+
+				{% for p in languages %}
+					<a href="{{ p.get_absolute_url }}">{{ p.title }}</a> |
+				{% endfor %}
+
+
+				<a href="/de/" class="mark">DE</a> |
+				<a href="/fr/">FR</a> |
+				<a href="/it/">IT</a> |
+				<a href="/en/">EN</a>
+			</div>
+			<form name="search">
+				<input type="text" name="search" />
+				<input type="submit" class="btn_search" value="senden" />
+			</form>
+
+			<ul id="pagemainnavi">
+				{% tusk_navigation of tusk.page as toplevel level=2 %}
+				{% mark_current %}
+				{% for p in toplevel %}
+				<li><a href="{{ p.get_absolute_url }}">{{ p.title }}</a></li>
+				{% endfor %}
+				{% endmark_current %}
+				<!--
+				<li><a href="#">Allianz</a></li>
+				<li class="mark"><a href="#">Handeln</a></li>
+				<li><a href="#">Politik</a></li>
+				<li><a href="#">Medien</a></li>
+				<li><a href="#">Kontakt</a></li>
+				<li><a href="#">Links</a></li>
+				-->
+			</ul>
+			<div id="pagesunnavi">
+				<ul class="sub2">
+					{% tusk_navigation of tusk.page as secondlevel level=3 %}
+					{% mark_current %}
+					{% for p in secondlevel %}
+					<li><a href="{{ p.get_absolute_url }}">{{ p.title }}</a></li>
+					{% endfor %}
+					<!--
+					<li><a href="#">About</a>&nbsp;|&nbsp;</li>
+					<li><a href="#">Charta</a>&nbsp;|&nbsp;</li>
+					<li class="mark"><a href="#">Organisation</a>&nbsp;|&nbsp;</li>
+					<li><a href="#">Mitlglieder</a></li>
+					-->
+					{% endmark_current %}
+				</ul>
+			</div>
+		</div>
+		<div id="pagecontent">
+			{% block pagesp1 %}
+			<div id="pagesp1">
+				{% block content %}
+				<h2>{{ tusk.blocks.content.title }}</h2>
+
+				{{ tusk.blocks.content.render }}
+
+				<img src="/static/media/img/testpic.jpg" alt="" />
+
+				{% lorem 2 p %}
+
+				{% endblock %}
+			</div>
+			{% endblock %}
+			{% block pagesp2 %}
+			<div id="pagesp2">
+				<dl>
+					<dt>Greenpeace:</dt>
+					<dd>
+						<img src="/static/media/img/testpic2.jpg" alt="" />
+					</dd>
+				</dl>
+				<dl>
+					<dt>Greenpeace:</dt>
+					<dd>
+						<img src="/static/media/img/testpic2.jpg" alt="" />
+					</dd>
+				</dl>
+			</div>
+			{% endblock %}
+		</div>
+		<div id="pagefooter"></div>
+	</div>
+	<a href="http://www.feinheit.ch" target="_blank" id="feinheit" title="Webdesign">feinheit</a>
+</body>
+</html>

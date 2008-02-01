@@ -7,7 +7,7 @@ from django.template import RequestContext
 from django.template.loader import render_to_string
 from django.contrib.admin.views.decorators import staff_member_required
 from django.views.decorators.cache import never_cache
-from django.utils.simplejson.encoder import JSONEncoder
+from django.utils import simplejson
 
 from tusk import mptt_nsw_bridge
 from tusk.forms import *
@@ -45,7 +45,7 @@ def newcontentform(request, id, contenttype):
 	linkform = PPCLinkForm(page, instance=link)
 	contentform = content.form()
 
-	return HttpResponse(JSONEncoder().encode({
+	return HttpResponse(simplejson.dumps({
 			'html': render_to_string('admin/pagecontentform.html', {
 				'link': link,
 				'content': content,
@@ -67,7 +67,7 @@ def newlinkcontentform(request, pageid, contentid):
 	linkform = PPCLinkForm(page, instance=link)
 	contentform = content.form()
 
-	return HttpResponse(JSONEncoder().encode({
+	return HttpResponse(simplejson.dumps({
 			'html': render_to_string('admin/pagecontentform.html', {
 				'link': link,
 				'content': content,
@@ -81,7 +81,7 @@ def _get_link_and_content(post, keys, id):
 	ldata = dict([(str(k[len(lk):]), post.get(k)) for k in keys if k.startswith(lk)])
 	ck = 'pc-%s-' % ldata['content']
 	cdata = dict([(str(k[len(ck):]), post.get(k)) for k in keys if k.startswith(ck)])
-	
+
 	return (ldata, cdata)
 
 @never_cache
