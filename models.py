@@ -3,6 +3,7 @@ from datetime import datetime
 from django.conf import settings
 from django.db import models
 from django.db.models import Q
+from django.contrib.auth.models import User
 import mptt
 
 from tusk.managers import PageManager, PageContentManager
@@ -37,7 +38,7 @@ class Page(models.Model):
 	STATE_CHOICES = ((DRAFT, DRAFT), (PUBLISHED, PUBLISHED), (ARCHIVED, ARCHIVED))
 
 	ADMIN_FIELDS = ('title', 'slug', 'parent_id', 'override_url', 'template_id',
-		'in_navigation', 'start_publish_date', 'end_publish_date')
+		'in_navigation', 'start_publish_date', 'end_publish_date', 'meta')
 
 	title = models.CharField(max_length=200)
 	slug = models.SlugField(max_length=50, prepopulate_from=('title',))
@@ -54,6 +55,10 @@ class Page(models.Model):
 	created = models.DateTimeField(editable=False, auto_now_add=True)
 	last_modified = models.DateTimeField(editable=False, auto_now=True)
 
+	author = models.ForeignKey(User, editable=False, related_name='authored_pages')
+
+	meta = models.TextField(blank=True)
+
 	class Admin:
 		pass
 
@@ -61,6 +66,13 @@ class Page(models.Model):
 		pass
 
 	objects = PageManager()
+
+	def save(self):
+		if not self.author_id:
+			from feinheit.middleware import get_current_user
+			self.author = get_current_user()
+
+		super(Page, self).save()
 
 	def __unicode__(self):
 		return "%s (%s)" % (self.title, self.get_absolute_url())
@@ -168,13 +180,16 @@ class PageContent(models.Model):
 	created = models.DateTimeField(editable=False, auto_now_add=True)
 	last_modified = models.DateTimeField(editable=False, auto_now=True)
 
+	author = models.ForeignKey(User, editable=False, related_name='authored_contents')
+
 	class Admin:
 		pass
 
 	def __unicode__(self):
-		return u'%s (created %s, last modified %s, %s)' % (
+		return u'%s (created %s by %s, last modified %s, %s)' % (
 			self.title,
 			self.created.strftime('%d.%m.%Y %H:%M'),
+			self.author,
 			self.last_modified.strftime('%d.%m.%Y %H:%M'),
 			self.state)
 
@@ -220,19 +235,16 @@ class PPCLink(models.Model):
 	last_modified = models.DateTimeField(editable=False, auto_now=True)
 
 	def __unicode__(self):
-		return u'%s => (%s) => %s // P:%s C:%s L:%s' % (self.content, self.block, self.page, self.page.pk, self.content.pk, self.pk)
-
-	class Admin:
-		pass
+		return u'%s: %s' % (self.block, self.content)
 
 	class Meta:
 		ordering = []
-	
+
 	def title(self):
 		return self.content.title
-	
+
 	def render(self):
 		return self.content._render(self)
-	
+
 	def meta(self):
 		return self.content.meta

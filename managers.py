@@ -15,8 +15,6 @@ class PageManager(models.Manager):
 		try:
 			return self.published().filter(**filters)[0]
 		except IndexError:
-			from django.db import connection
-			print connection.queries
 			raise self.model.DoesNotExist
 
 	def page_for_path_or_404(self, path):
@@ -32,8 +30,11 @@ class PageManager(models.Manager):
 			Q(start_publish_date__lte=datetime.now()) | Q(start_publish_date__isnull=True),
 			Q(end_publish_date__gte=datetime.now()) | Q(end_publish_date__isnull=True))
 
+	def in_navigation(self):
+		return self.published().filter(in_navigation=True)
+
 	def toplevel_navigation(self):
-		return self.published().filter(parent__isnull=True)
+		return self.in_navigation().filter(parent__isnull=True)
 
 class PageContentManager(models.Manager):
 	def published(self):

@@ -37,11 +37,7 @@ def widget(request):
 		('Commands', 'id'))),
 		mimetype='text/plain')
 
-def newcontentform(request, id, contenttype):
-	page = get_object_or_404(Page, pk=int(id))
-	content = PageContent.objects.create(content_type=contenttype, title='new content', state=PageContent.NEW)
-	link = PPCLink.objects.create(page=page, content=content, block=page.get_template().get_blocks()[0])
-
+def _json_content_form(page, link, content):
 	linkform = PPCLinkForm(page, instance=link)
 	contentform = content.form()
 
@@ -53,6 +49,13 @@ def newcontentform(request, id, contenttype):
 				'contentform': contentform}),
 			'javascript': contentform.javascript()
 		}), mimetype='application/json')
+
+def newcontentform(request, id, contenttype):
+	page = get_object_or_404(Page, pk=int(id))
+	content = PageContent.objects.create(content_type=contenttype, title='new content', state=PageContent.NEW, author=request.user)
+	link = PPCLink.objects.create(page=page, content=content, block=page.get_template().get_blocks()[0])
+
+	return _json_content_form(page, link, content)
 
 def newlinkcontentform(request, pageid, contentid):
 	page = get_object_or_404(Page, pk=pageid)
@@ -64,17 +67,7 @@ def newlinkcontentform(request, pageid, contentid):
 	link.content = content
 	link.save()
 
-	linkform = PPCLinkForm(page, instance=link)
-	contentform = content.form()
-
-	return HttpResponse(simplejson.dumps({
-			'html': render_to_string('admin/pagecontentform.html', {
-				'link': link,
-				'content': content,
-				'linkform': linkform,
-				'contentform': contentform}),
-			'javascript': contentform.javascript()
-		}), mimetype='application/json')
+	return _json_content_form(page, link, content)
 
 def _get_link_and_content(post, keys, id):
 	lk = 'ppc-%s-' % id
@@ -88,7 +81,7 @@ def _get_link_and_content(post, keys, id):
 @staff_member_required
 def page_edit(request, id):
 
-	PageContent.objects.filter(state=PageContent.NEW).delete()
+	PageContent.objects.filter(state=PageContent.NEW, author=request.user).delete()
 
 	page = get_object_or_404(Page, pk=id)
 	links = page.content_links.all()
@@ -112,6 +105,7 @@ def page_edit(request, id):
 				newpage = pageform.save(commit=False)
 				newpage = Page(**subdict(newpage.__dict__, *Page.ADMIN_FIELDS))
 				newpage.state = Page.DRAFT
+				newpage.author = request.user
 				newpage.save()
 
 				for id in ppc_ids:
@@ -121,6 +115,7 @@ def page_edit(request, id):
 						continue
 
 					content = PageContent(**subdict(cdata, *PageContent.ADMIN_FIELDS))
+					content.author = request.user
 					content.save()
 
 					link = PPCLink(**subdict(ldata, *PPCLink.ADMIN_FIELDS))
@@ -132,7 +127,8 @@ def page_edit(request, id):
 					message='Copy of %s successfully created. You are editing the copy now.' % (page))
 				return HttpResponseRedirect('../%s/' % newpage.pk)
 
-			pageform.save()
+			page = pageform.save(commit=False)
+			page.save()
 			request.user.message_set.create(message='Saved all changes.')
 
 			for id in ppc_ids:
@@ -155,6 +151,7 @@ def page_edit(request, id):
 					content = PageContent()
 
 				content.__dict__.update(subdict(cdata, *PageContent.ADMIN_FIELDS))
+				content.author = request.user
 				content.save()
 
 				link.__dict__.update(subdict(ldata, *PPCLink.ADMIN_FIELDS))

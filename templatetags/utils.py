@@ -11,6 +11,67 @@ and
 
 from django import template
 
+def _parse_args(argstr):
+	try:
+		args = {}
+		for token in argstr.split(','):
+			k, v = token.split('=')
+			args[k] = v
+
+		return args
+
+	except TypeError:
+		raise template.TemplateSyntaxError('Malformed arguments')
+
+def do_simple_node_with_var_and_args_helper(cls):
+	def _func(parser, token):
+		try:
+			tag_name, of_, in_var_name, args = token.contents.split()
+		except ValueError:
+			raise template.TemplateSyntaxError
+
+		return cls(tag_name, in_var_name, args)
+
+	return _func
+
+class SimpleNodeWithVarAndArgs(template.Node):
+	def __init__(self, tag_name, in_var_name, args):
+		self.tag_name = tag_name
+		self.in_var = template.Variable(in_var_name)
+		self.args = args
+
+	def render(self, context):
+		try:
+			instance = self.in_var.resolve(context)
+		except template.VariableDoesNotExist:
+			return ''
+
+		return self.what(instance, _parse_args(self.args))
+
+def do_simple_node_with_var_helper(cls):
+	def _func(parser, token):
+		try:
+			tag_name, of_, in_var_name = token.contents.split()
+		except ValueError:
+			raise template.TemplateSyntaxError
+
+		return cls(tag_name, in_var_name)
+
+	return _func
+
+class SimpleNodeWithVar(template.Node):
+	def __init__(self, tag_name, in_var_name):
+		self.tag_name = tag_name
+		self.in_var = template.Variable(in_var_name)
+
+	def render(self, context):
+		try:
+			instance = self.in_var.resolve(context)
+		except template.VariableDoesNotExist:
+			return ''
+
+		return self.what(instance)
+
 def do_simple_assignment_node_helper(cls):
 	def _func(parser, token):
 		try:
@@ -83,14 +144,6 @@ class SimpleAssignmentNodeWithVarAndArgs(template.Node):
 			context[self.var_name] = []
 			return ''
 
-		try:
-			args = {}
-			for token in self.args.split(','):
-				k, v = token.split('=')
-				args[k] = v
-
-			context[self.var_name] = self.what(instance, args)
-		except TypeError:
-			raise template.TemplateSyntaxError('')
+		context[self.var_name] = self.what(instance, _parse_args(self.args))
 
 		return ''
