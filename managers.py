@@ -36,6 +36,15 @@ class PageManager(models.Manager):
 	def toplevel_navigation(self):
 		return self.in_navigation().filter(parent__isnull=True)
 
+	def search(self, query):
+		if not query:
+			return
+		return self.published().filter(
+			Q(title__icontains=query) |
+			Q(content_links__content__title__icontains=query) |
+			Q(content_links__content__content__icontains=query)
+			).distinct()
+
 class PageContentManager(models.Manager):
 	def published(self):
 		return self.filter(state=self.model.PUBLISHED)

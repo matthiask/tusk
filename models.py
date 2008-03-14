@@ -63,7 +63,7 @@ class Page(models.Model):
 		pass
 
 	class Meta:
-		pass
+		ordering = ['lft']
 
 	objects = PageManager()
 
