@@ -3,7 +3,7 @@ from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
 from django.contrib.admin.views.decorators import staff_member_required
 
-from tusk.models import Page
+from tusk.models import Page, Blocks
 
 def start(request):
 	return handler(request, 'home/')
@@ -37,6 +37,7 @@ def _handle_page(request, page):
 		'tusk': {
 			'page': page,
 			'blocks': page.get_blocks(),
+			'blocks_new': Blocks(page),
 		}}, context_instance=RequestContext(request))
 
 def handler(request, path):

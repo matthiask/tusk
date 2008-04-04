@@ -31,6 +31,37 @@ class Template(models.Model):
 
 DEFAULT_TEMPLATE = Template(title='<Default Template>', path='base.html', blocks='content')
 
+class Blocks(object):
+	"""
+	object which searches blocks in the ancestors of the page
+
+	TODO: at least some caching might be nice before it can be
+	generally used. And throwing real Exceptions instead of
+	returning None too.
+	"""
+	def __init__(self, page):
+		self.page = page
+		self.available_blocks = page.get_template().get_blocks()
+
+	def __getattr__(self, name):
+		if name in self.available_blocks:
+			block = self.page.get_block(name)
+			ref = self.page
+
+			while not block:
+				try:
+					ref = ref.parent
+				except Page.DoesNotExist:
+					# raise Exception
+					return None
+
+				block = ref.get_block(name)
+
+			return block
+
+		# raise Exception
+		return None
+
 class Page(models.Model):
 	PUBLISHED = 'published'
 	DRAFT = 'draft'
@@ -82,6 +113,13 @@ class Page(models.Model):
 			content__state=PageContent.PUBLISHED)
 
 		return dict([(link.block, link) for link in links])
+
+	def get_block(self, name):
+		links = self.content_links.select_related().filter(
+			block = name,
+			content__state=PageContent.PUBLISHED)
+		if links:
+			return links[0]
 
 	def _get_attr_from_self_or_ancestors(self, attr):
 		v = getattr(self, attr)
@@ -238,7 +276,7 @@ class PPCLink(models.Model):
 		return u'%s: %s' % (self.block, self.content)
 
 	class Meta:
-		ordering = []
+		ordering = ['block']
 
 	def title(self):
 		return self.content.title
