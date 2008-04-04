@@ -1,4 +1,4 @@
-from django.db import connection, transaction
+from django.db import connection
 from django.utils.encoding import smart_unicode
 from django.utils import simplejson
 
@@ -42,7 +42,6 @@ def store_tree(cls, tree):
 			cls._meta.pk.column)
 
 		cursor.execute(sql % tuple(elem))
-	transaction.commit()
 
 def process_store_tree(cls, request):
 	structure = simplejson.loads(request.POST.get('nested-sortable-widget'))
