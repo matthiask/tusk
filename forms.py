@@ -36,7 +36,11 @@ class NewPageContentForm(forms.Form):
 	def __init__(self, *args, **kwargs):
 		super(NewPageContentForm, self).__init__(*args, **kwargs)
 		self.fields['content_type'].choices = (('', '-- select --'),) + PageContent.CONTENT_TYPE_CHOICES
-		self.fields['pagecontent'].choices = [('', '-- select --'),] + [(obj.pk, unicode(obj)) for obj in PageContent.objects.filter(state__in=(PageContent.STATES))]
+		#self.fields['pagecontent'].choices = [('', '-- select --'),] + [(obj.pk, unicode(obj)) for obj in PageContent.objects.filter(state__in=(PageContent.STATES))]
+		lst = dict([('%s' % obj.content.pk, unicode(obj)) for obj in PPCLink.objects.filter(content__state__in=(PageContent.STATES))])
+		lst = zip(lst.values(), lst.keys())
+		lst.sort()
+		self.fields['pagecontent'].choices = [('', '-- select --'),] + [(k,v) for v, k in lst]
 
 	def as_div(self):
 		return self._html_output(u'<div class="form-row">%(label)s %(errors)s %(field)s %(help_text)s</div>', u'%s', '</div>', u' %s', False)
